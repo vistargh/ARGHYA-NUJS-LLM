@@ -1,0 +1,975 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Decision Preference Study</title>
+    <link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:wght@300;400;600;700&family=JetBrains+Mono:wght@400;500&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --pearl-white: #fafbff;
+            --iridescent-1: #c3d9ff;
+            --iridescent-2: #d4c5ff;
+            --text-dark: #1a2332;
+            --text-mid: #4a5568;
+            --text-light: #6b7280;
+            --text-dim: #8a94a6;
+            --accent-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+            --accent-cool: #667eea;
+            --accent-warm: #764ba2;
+            --glow-soft: rgba(102, 126, 234, 0.15);
+            --success-text: #0f5132;
+            --success-bg: rgba(212, 244, 221, 0.3);
+            --success-border: rgba(40, 167, 69, 0.3);
+            --success-accent: #28a745;
+            --warning-text: #856404;
+            --bg-gradient: radial-gradient(circle at 20% 50%, rgba(232,240,255,0.5) 0%, transparent 50%),
+                           radial-gradient(circle at 80% 80%, rgba(240,235,255,0.5) 0%, transparent 50%),
+                           linear-gradient(135deg, #fafbff 0%, #ffffff 50%, #f5f7ff 100%);
+            --card-bg: rgba(255,255,255,0.75);
+            --card-border: rgba(195,217,255,0.3);
+            --shimmer-1: rgba(195,217,255,0.1);
+            --shimmer-2: rgba(212,197,255,0.1);
+            --shimmer-3: rgba(255,212,244,0.1);
+            --particle-color-1: rgba(102,126,234,0.03);
+            --particle-color-2: rgba(118,75,162,0.03);
+            /* FIX 1: option surfaces */
+            --opt-bg: rgba(255,255,255,0.62);
+            --opt-bg-hover: rgba(255,255,255,0.92);
+            --opt-border: rgba(195,217,255,0.42);
+            --opt-text: #1a2332;
+        }
+
+        /* ══ FIX 1: DARK MODE — readable option/checkbox/likert surfaces ══ */
+        [data-theme="dark"] {
+            --text-dark: #eeeef5;
+            --text-mid: #b0b0c8;
+            --text-light: #888899;
+            --text-dim: #666677;
+            --accent-cool: #8899ff;
+            --accent-warm: #bb88ee;
+            --glow-soft: rgba(102,126,234,0.22);
+            --success-text: #7de89a;
+            --success-bg: rgba(26,58,36,0.4);
+            --success-border: rgba(106,222,138,0.35);
+            --success-accent: #6ade8a;
+            --warning-text: #ffc107;
+            --bg-gradient: radial-gradient(circle at 20% 50%, rgba(26,26,46,0.5) 0%, transparent 50%),
+                           radial-gradient(circle at 80% 80%, rgba(22,33,62,0.5) 0%, transparent 50%),
+                           linear-gradient(135deg, #0f0f1e 0%, #1a1a2e 50%, #16213e 100%);
+            --card-bg: rgba(30,30,55,0.9);
+            --card-border: rgba(102,126,234,0.2);
+            --shimmer-1: rgba(102,126,234,0.08);
+            --shimmer-2: rgba(118,75,162,0.08);
+            --shimmer-3: rgba(240,147,251,0.08);
+            --particle-color-1: rgba(102,126,234,0.05);
+            --particle-color-2: rgba(118,75,162,0.05);
+            /* THE KEY FIX: solid dark mid-tone surfaces instead of near-black */
+            --opt-bg: rgba(50,50,80,0.95);
+            --opt-bg-hover: rgba(65,65,100,1);
+            --opt-border: rgba(102,126,234,0.32);
+            --opt-text: #eeeef5;
+        }
+
+        .theme-toggle {
+            position:fixed; top:20px; right:20px; z-index:1001;
+            background:var(--card-bg); backdrop-filter:blur(10px);
+            border:1px solid var(--card-border); border-radius:50px;
+            padding:10px 16px; cursor:pointer;
+            display:flex; align-items:center; gap:8px;
+            transition:all 0.3s cubic-bezier(0.16,1,0.3,1);
+            box-shadow:0 4px 20px var(--glow-soft);
+        }
+        .theme-toggle:hover { transform:translateY(-2px); }
+        .theme-toggle-icon { font-size:1.2rem; transition:transform 0.3s; }
+        .theme-toggle:hover .theme-toggle-icon { transform:rotate(15deg); }
+        .theme-toggle-text { font-size:0.85rem; font-weight:600; color:var(--text-mid); text-transform:uppercase; letter-spacing:0.05em; }
+
+        * { margin:0; padding:0; box-sizing:border-box; }
+
+        body {
+            font-family:'Crimson Pro',serif;
+            background:var(--bg-gradient); background-attachment:fixed;
+            color:var(--text-dark); min-height:100vh; line-height:1.6; overflow-x:hidden; position:relative;
+        }
+        body::before {
+            content:''; position:fixed; top:0; left:0; width:100%; height:100%;
+            background:radial-gradient(circle at 30% 20%, var(--shimmer-1) 0%, transparent 50%),
+                        radial-gradient(circle at 70% 60%, var(--shimmer-2) 0%, transparent 50%),
+                        radial-gradient(circle at 50% 90%, var(--shimmer-3) 0%, transparent 50%);
+            animation:shimmerMove 15s ease-in-out infinite; pointer-events:none; z-index:0;
+        }
+        body::after {
+            content:''; position:fixed; width:100%; height:100%; top:0; left:0;
+            background-image:radial-gradient(circle, var(--particle-color-1) 1px, transparent 1px),
+                              radial-gradient(circle, var(--particle-color-2) 1px, transparent 1px);
+            background-size:50px 50px, 80px 80px; background-position:0 0, 25px 25px;
+            animation:particleFloat 20s linear infinite; pointer-events:none; z-index:0;
+        }
+        @keyframes shimmerMove { 0%,100%{opacity:0.3;transform:scale(1) translateY(0)} 50%{opacity:0.6;transform:scale(1.1) translateY(-20px)} }
+        @keyframes particleFloat { 0%{transform:translateY(0) translateX(0);opacity:0.3} 50%{opacity:0.5} 100%{transform:translateY(-100px) translateX(50px);opacity:0.3} }
+
+        .container { max-width:900px; margin:0 auto; padding:60px 30px; position:relative; z-index:2; }
+        .progress-bar { position:fixed; top:0; left:0; width:100%; height:3px; background:rgba(195,217,255,0.2); z-index:1000; }
+        .progress-fill { height:100%; background:var(--accent-gradient); width:0%; transition:width 0.6s cubic-bezier(0.4,0,0.2,1); box-shadow:0 0 10px rgba(102,126,234,0.3); }
+
+        .section { display:none; animation:fadeInUp 0.8s cubic-bezier(0.16,1,0.3,1); }
+        .section.active { display:block; }
+        @keyframes fadeInUp { from{opacity:0;transform:translateY(30px)} to{opacity:1;transform:translateY(0)} }
+
+        h1 { font-family:'Instrument Serif',serif; font-size:3.5rem; font-weight:400; letter-spacing:-0.01em; margin-bottom:20px; background:linear-gradient(135deg,#667eea 0%,#764ba2 50%,#f093fb 100%); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; }
+        h2 { font-family:'Instrument Serif',serif; font-size:2.2rem; font-weight:400; margin-bottom:30px; color:var(--text-dark); }
+        .subtitle { font-size:1.2rem; color:var(--text-mid); margin-bottom:50px; font-weight:300; }
+
+        .card { background:var(--card-bg); backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px); border:1px solid var(--card-border); border-radius:20px; padding:40px; margin-bottom:30px; box-shadow:0 4px 20px rgba(102,126,234,0.08),inset 0 1px 0 rgba(255,255,255,0.5); transition:all 0.4s cubic-bezier(0.16,1,0.3,1); position:relative; overflow:hidden; }
+        .card:hover { transform:translateY(-4px); box-shadow:0 12px 40px rgba(102,126,234,0.13); }
+        @media (hover:none) and (pointer:coarse) { .card:hover { transform:translateY(-1px); } }
+
+        .question { font-size:1.3rem; font-weight:600; margin-bottom:25px; line-height:1.5; color:var(--text-dark); }
+        .options { display:flex; flex-direction:column; gap:14px; }
+
+        /* Options — ALL use --opt-* so both themes work automatically */
+        .option { position:relative; padding:17px 20px; background:var(--opt-bg); border:2px solid var(--opt-border); border-radius:14px; cursor:pointer; transition:all 0.25s ease; font-size:1.05rem; color:var(--opt-text); display:flex; align-items:center; gap:12px; }
+        .option:hover { background:var(--opt-bg-hover); border-color:var(--accent-cool); transform:translateX(4px); }
+        .option.selected { background:rgba(102,126,234,0.12); border-color:var(--accent-cool); box-shadow:0 3px 14px rgba(102,126,234,0.14); }
+        .option input[type="radio"], .option input[type="checkbox"] { flex-shrink:0; width:18px; height:18px; accent-color:var(--accent-cool); cursor:pointer; }
+
+        .manipulative-timer { position:sticky; top:10px; background:var(--card-bg); backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px); border:1px solid var(--card-border); border-radius:16px; padding:16px 24px; margin-bottom:28px; text-align:center; z-index:5; box-shadow:0 4px 16px rgba(255,193,7,0.07); }
+        .timer-label { font-size:0.83rem; color:var(--text-mid); margin-bottom:4px; font-weight:600; text-transform:uppercase; letter-spacing:0.08em; }
+        .timer-display { font-size:1.9rem; font-weight:700; background:linear-gradient(135deg,#ff9800,#ff6b00); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; letter-spacing:0.1em; font-family:'JetBrains Mono',monospace; }
+        .timer-warning { margin-top:5px; font-size:0.77rem; color:var(--text-mid); font-style:italic; }
+
+        .manipulated-option { position:relative; padding:22px; background:var(--opt-bg); border:2px solid rgba(102,126,234,0.32); border-radius:16px; cursor:pointer; transition:all 0.25s ease; display:flex; align-items:flex-start; gap:14px; }
+        .manipulated-option:hover { background:var(--opt-bg-hover); border-color:var(--accent-cool); transform:translateX(4px); box-shadow:0 6px 22px rgba(102,126,234,0.13); }
+        .manipulated-option.selected { background:rgba(102,126,234,0.13); border-color:var(--accent-warm); }
+        .manipulated-option input[type="radio"] { flex-shrink:0; width:18px; height:18px; margin-top:3px; accent-color:var(--accent-cool); cursor:pointer; }
+
+        .badge { display:inline-flex; align-items:center; gap:6px; padding:5px 12px; background:rgba(102,126,234,0.1); border:1px solid rgba(102,126,234,0.25); border-radius:20px; font-size:0.78rem; font-weight:600; letter-spacing:0.02em; margin-bottom:10px; text-transform:uppercase; color:var(--accent-warm); }
+        .option-title { font-size:1.15rem; font-weight:700; margin-bottom:6px; color:var(--text-dark); }
+        .option-description { font-size:0.93rem; color:var(--text-mid); line-height:1.5; }
+
+        .warning-text { display:flex; align-items:flex-start; gap:7px; padding:10px 12px; background:rgba(255,243,205,0.45); border-left:3px solid #ffc107; border-radius:8px; font-size:0.85rem; color:var(--warning-text); margin-top:10px; }
+        [data-theme="dark"] .warning-text { background:rgba(60,50,20,0.5); }
+        .urgency-text { display:flex; align-items:center; gap:7px; padding:10px 12px; background:rgba(102,126,234,0.07); border-left:3px solid var(--accent-cool); border-radius:8px; font-size:0.85rem; color:var(--accent-warm); margin-top:13px; }
+        .non-preferred-option { opacity:0.65; }
+        .non-preferred-option:hover { opacity:0.85; }
+
+        .btn { display:inline-block; padding:16px 38px; background:var(--accent-gradient); color:white; border:none; border-radius:14px; font-size:1.05rem; font-weight:600; cursor:pointer; transition:all 0.3s cubic-bezier(0.16,1,0.3,1); font-family:'Crimson Pro',serif; letter-spacing:0.02em; box-shadow:0 4px 20px rgba(102,126,234,0.3); position:relative; overflow:hidden; }
+        .btn:hover { transform:translateY(-2px); box-shadow:0 8px 28px rgba(102,126,234,0.4); }
+        .btn:active { transform:translateY(0) scale(0.98); }
+        .btn:disabled { opacity:0.4; cursor:not-allowed; transform:none; }
+        .btn-secondary { background:var(--opt-bg); color:var(--text-dark); border:2px solid var(--opt-border); box-shadow:none; }
+        .btn-secondary:hover { background:var(--opt-bg-hover); border-color:var(--accent-cool); box-shadow:0 3px 12px rgba(102,126,234,0.1); }
+
+        /* Checkbox labels use --opt-* */
+        .checkbox-group { display:flex; flex-direction:column; gap:10px; }
+        .checkbox-label { display:flex; align-items:center; padding:13px 15px; background:var(--opt-bg); border:1px solid var(--opt-border); border-radius:12px; cursor:pointer; transition:all 0.25s ease; color:var(--opt-text); font-size:1rem; }
+        .checkbox-label:hover { background:var(--opt-bg-hover); border-color:var(--accent-cool); transform:translateX(3px); }
+        .checkbox-label input { margin-right:12px; width:17px; height:17px; flex-shrink:0; accent-color:var(--accent-cool); }
+
+        .navigation { display:flex; justify-content:space-between; align-items:center; margin-top:40px; gap:20px; }
+        .helper-text { font-size:0.9rem; color:var(--text-light); font-style:italic; margin-top:14px; }
+
+        /* Likert labels use --opt-* */
+        .likert-scale { display:flex; justify-content:space-between; gap:8px; margin:18px 0; flex-wrap:wrap; }
+        .likert-option { flex:1; text-align:center; min-width:78px; }
+        .likert-option input[type="radio"] { display:none; }
+        .likert-option label { display:block; padding:13px 7px; background:var(--opt-bg); border:2px solid var(--opt-border); border-radius:12px; cursor:pointer; transition:all 0.25s ease; font-size:0.88rem; color:var(--opt-text); line-height:1.3; }
+        .likert-option input[type="radio"]:checked + label { background:rgba(102,126,234,0.15); border-color:var(--accent-cool); box-shadow:0 3px 12px rgba(102,126,234,0.17); transform:translateY(-2px); color:var(--text-dark); }
+        .likert-option label:hover { background:var(--opt-bg-hover); border-color:rgba(102,126,234,0.42); transform:translateY(-1px); }
+
+        textarea { width:100%; min-height:120px; padding:15px; background:var(--opt-bg); border:2px solid var(--opt-border); border-radius:12px; color:var(--text-dark); font-family:'Crimson Pro',serif; font-size:1rem; resize:vertical; transition:all 0.25s ease; }
+        textarea:focus { outline:none; border-color:var(--accent-cool); background:var(--opt-bg-hover); box-shadow:0 3px 14px rgba(102,126,234,0.12); }
+        textarea::placeholder { color:var(--text-light); }
+
+        input[type="text"] { background:var(--opt-bg); border:1px solid var(--opt-border); border-radius:7px; color:var(--text-dark); padding:8px 12px; font-family:'Crimson Pro',serif; font-size:0.94rem; transition:all 0.25s ease; width:260px; max-width:100%; }
+        input[type="text"]:focus { outline:none; border-color:var(--accent-cool); background:var(--opt-bg-hover); }
+
+        .reflection-prompt { background:var(--success-bg); border-left:3px solid var(--success-accent); padding:17px 20px; border-radius:10px; margin-bottom:26px; font-size:1.02rem; font-style:italic; color:var(--success-text); }
+        .awareness-note { background:rgba(102,126,234,0.06); border:1px solid rgba(102,126,234,0.18); border-radius:16px; padding:26px; margin-bottom:32px; line-height:1.7; }
+        .awareness-note h3 { font-size:1.22rem; margin-bottom:10px; color:var(--accent-warm); font-weight:600; }
+        .awareness-note p { margin-bottom:9px; font-size:0.96rem; color:var(--text-dark); }
+        .awareness-note ul { margin:10px 0 10px 18px; font-size:0.93rem; }
+        .awareness-note li { margin-bottom:5px; line-height:1.5; color:var(--text-mid); }
+        .awareness-note strong { color:var(--accent-warm); }
+        .section-header { font-size:1.32rem; font-weight:600; margin:32px 0 17px; color:var(--accent-warm); border-bottom:2px solid rgba(102,126,234,0.16); padding-bottom:9px; letter-spacing:0.01em; }
+        .research-info-card { background:var(--success-bg) !important; border-color:var(--success-border) !important; }
+        .consent-card { background:var(--success-bg) !important; border-color:var(--success-border) !important; }
+
+        .submission-status { position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); background:var(--card-bg); backdrop-filter:blur(20px); border:2px solid var(--card-border); border-radius:20px; padding:50px; text-align:center; z-index:2000; display:none; box-shadow:0 10px 40px rgba(102,126,234,0.2); }
+        .submission-status.active { display:block; animation:fadeInScale 0.4s ease; }
+        @keyframes fadeInScale { from{opacity:0;transform:translate(-50%,-50%) scale(0.9)} to{opacity:1;transform:translate(-50%,-50%) scale(1)} }
+        .spinner { border:4px solid rgba(195,217,255,0.3); border-top:4px solid var(--accent-cool); border-radius:50%; width:48px; height:48px; animation:spin 1s linear infinite; margin:0 auto 18px; }
+        @keyframes spin { to{transform:rotate(360deg)} }
+        #statusMessage { color:var(--text-dark); font-weight:600; }
+
+        ::-webkit-scrollbar { width:8px; }
+        ::-webkit-scrollbar-track { background:rgba(248,249,255,0.4); }
+        ::-webkit-scrollbar-thumb { background:linear-gradient(135deg,var(--iridescent-1),var(--iridescent-2)); border-radius:4px; }
+        p,span,li,label,div { -webkit-font-smoothing:antialiased; }
+
+        /* ══ FIX 2: COMPLETION PAGE — Reveal Panel ══ */
+        .reveal-wrap { max-width:660px; margin:0 auto; padding:20px 0 70px; }
+        .reveal-eyebrow { font-size:0.75rem; font-weight:700; text-transform:uppercase; letter-spacing:0.12em; color:var(--accent-cool); margin-bottom:10px; }
+        .reveal-title { font-family:'Instrument Serif',serif; font-size:2.4rem; font-weight:400; color:var(--text-dark); letter-spacing:-0.01em; margin-bottom:8px; line-height:1.15; }
+        .reveal-sub-id { font-family:'JetBrains Mono',monospace; font-size:0.75rem; color:var(--text-light); margin-bottom:44px; }
+
+        .reveal-stats { display:grid; grid-template-columns:repeat(4,1fr); border:1px solid var(--card-border); border-radius:16px; overflow:hidden; margin-bottom:48px; }
+        .reveal-stat { padding:24px 16px; border-right:1px solid var(--card-border); background:var(--card-bg); backdrop-filter:blur(8px); }
+        .reveal-stat:last-child { border-right:none; }
+        .stat-number { font-size:2rem; font-weight:700; color:var(--accent-cool); line-height:1; margin-bottom:6px; font-family:'JetBrains Mono',monospace; }
+        .stat-label { font-size:0.69rem; font-weight:600; text-transform:uppercase; letter-spacing:0.06em; color:var(--text-light); line-height:1.4; }
+
+        .reveal-divider { height:1px; background:var(--card-border); margin:36px 0; }
+        .reveal-section { margin-bottom:0; }
+        .reveal-section-title { font-size:0.74rem; font-weight:700; text-transform:uppercase; letter-spacing:0.09em; color:var(--text-mid); margin-bottom:18px; }
+
+        .signal-list { display:flex; flex-direction:column; }
+        .signal-row { display:flex; justify-content:space-between; align-items:baseline; padding:11px 0; border-bottom:1px solid var(--card-border); gap:20px; }
+        .signal-row:last-child { border-bottom:none; }
+        .signal-name { font-size:0.96rem; color:var(--text-dark); font-weight:500; }
+        .signal-type { font-size:0.82rem; color:var(--text-light); white-space:nowrap; font-style:italic; }
+
+        .reveal-body { font-size:1rem; line-height:1.78; color:var(--text-mid); max-width:540px; }
+        .reveal-body p { margin-bottom:12px; }
+        .reveal-body p:last-child { margin-bottom:0; }
+        .reveal-takeaway { margin-top:34px; padding:18px 20px; background:rgba(102,126,234,0.07); border-left:3px solid var(--accent-cool); border-radius:0 10px 10px 0; }
+        .reveal-takeaway p { font-size:0.96rem; line-height:1.65; color:var(--text-dark); margin:0; }
+        .reveal-close { margin-top:44px; font-size:0.87rem; color:var(--text-light); }
+
+        @media (max-width:768px) {
+            h1{font-size:2.3rem} h2{font-size:1.75rem}
+            .container{padding:44px 18px} .card{padding:22px 18px}
+            .navigation{flex-direction:column} .btn,.btn-secondary{width:100%}
+            .likert-scale{flex-direction:column} .likert-option{min-width:unset}
+            .likert-option label{padding:12px 14px;text-align:left}
+            .theme-toggle-text{display:none}
+        }
+        @media (max-width:600px) {
+            .reveal-stats{grid-template-columns:repeat(2,1fr)}
+            .reveal-stat:nth-child(2){border-right:none}
+            .reveal-stat:nth-child(3){border-right:1px solid var(--card-border);border-top:1px solid var(--card-border)}
+            .reveal-stat:nth-child(4){border-top:1px solid var(--card-border)}
+            .reveal-title{font-size:1.9rem} .stat-number{font-size:1.7rem}
+        }
+        @media (prefers-reduced-motion:reduce) { *,*::before,*::after{animation-duration:0.01ms!important;transition-duration:0.01ms!important} }
+    </style>
+</head>
+<body>
+
+<button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle dark mode">
+    <span class="theme-toggle-icon" id="themeIcon">☀️</span>
+    <span class="theme-toggle-text" id="themeText">Light</span>
+</button>
+<div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+<div class="submission-status" id="submissionStatus"><div class="spinner"></div><h3 id="statusMessage">Submitting your responses...</h3></div>
+
+<div class="container">
+
+<!-- WELCOME -->
+<section id="welcome" class="section active">
+    <h1>Decision Preference Study</h1>
+    <p class="subtitle">Understanding how people make choices in different contexts</p>
+    <div class="card">
+        <h2>Welcome</h2>
+        <p style="margin-bottom:18px">Thank you for participating in this research study. This study examines how people make decisions in various contexts and settings.</p>
+        <p style="margin-bottom:14px">The study consists of four parts:</p>
+        <ul style="margin-left:22px;margin-bottom:18px;line-height:1.85">
+            <li><strong>Part 0:</strong> Brief identity calibration questions (1 minute)</li>
+            <li><strong>Part 1:</strong> Initial preference decisions (2 minutes)</li>
+            <li><strong>Part 2:</strong> Reflective decision review (2 minutes)</li>
+            <li><strong>Part 3:</strong> Digital advertising awareness questionnaire (5 minutes)</li>
+        </ul>
+        <p style="margin-bottom:16px">Please answer all questions honestly and thoughtfully. There are no right or wrong answers.</p>
+        <p style="color:var(--text-dim);font-size:0.93rem">Estimated total time: 10–12 minutes</p>
+    </div>
+    <div class="card research-info-card">
+        <h2 style="font-size:1.55rem;margin-bottom:18px">Research Information</h2>
+        <p style="margin-bottom:13px;line-height:1.8">This survey forms part of an academic dissertation by <strong>Arghya Chakraborty</strong> (LLM, NUJS, Kolkata) on digital influence, cognitive inference, and mental privacy in contemporary digital platforms.</p>
+        <p style="margin-bottom:13px;line-height:1.8">Participation is voluntary. Responses will be analysed anonymously and reported only in aggregated form for academic research purposes.</p>
+        <p style="line-height:1.8"><strong>No personally identifiable information will be published or shared outside the research process.</strong></p>
+    </div>
+    <div class="navigation"><div></div><button class="btn" onclick="nextSection()">Begin Study</button></div>
+</section>
+
+<!-- PART 0 -->
+<section id="part0" class="section">
+    <h2>Part 0: Identity Calibration</h2>
+    <p class="subtitle">Help us understand what matters to you</p>
+    <div class="card">
+        <div class="question">Which of the following matter most to you? (Select 1 or 2)</div>
+        <div class="checkbox-group">
+            <label class="checkbox-label"><input type="checkbox" name="identity" value="intelligent" onchange="limitCheckboxes(this,2)"><span>Being seen as intelligent</span></label>
+            <label class="checkbox-label"><input type="checkbox" name="identity" value="successful" onchange="limitCheckboxes(this,2)"><span>Being seen as successful</span></label>
+            <label class="checkbox-label"><input type="checkbox" name="identity" value="independent" onchange="limitCheckboxes(this,2)"><span>Being seen as independent</span></label>
+            <label class="checkbox-label"><input type="checkbox" name="identity" value="ethical" onchange="limitCheckboxes(this,2)"><span>Being seen as ethical</span></label>
+            <label class="checkbox-label"><input type="checkbox" name="identity" value="disciplined" onchange="limitCheckboxes(this,2)"><span>Being seen as disciplined</span></label>
+            <label class="checkbox-label"><input type="checkbox" name="identity" value="ahead" onchange="limitCheckboxes(this,2)"><span>Being ahead of others</span></label>
+            <label class="checkbox-label"><input type="checkbox" name="identity" value="respected" onchange="limitCheckboxes(this,2)"><span>Being respected for judgment</span></label>
+        </div>
+        <p class="helper-text">Select up to 2 options that resonate most with you</p>
+    </div>
+    <div class="card">
+        <div class="question">How confident are you in your decision-making abilities?</div>
+        <div class="likert-scale">
+            <div class="likert-option"><input type="radio" name="self-perception" value="1" id="sp1"><label for="sp1">Much better than most</label></div>
+            <div class="likert-option"><input type="radio" name="self-perception" value="2" id="sp2"><label for="sp2">Better than most</label></div>
+            <div class="likert-option"><input type="radio" name="self-perception" value="3" id="sp3"><label for="sp3">About average</label></div>
+            <div class="likert-option"><input type="radio" name="self-perception" value="4" id="sp4"><label for="sp4">Prefer guidance</label></div>
+            <div class="likert-option"><input type="radio" name="self-perception" value="5" id="sp5"><label for="sp5">Rely on experts</label></div>
+        </div>
+    </div>
+    <div class="navigation">
+        <button class="btn btn-secondary" onclick="previousSection()">Back</button>
+        <button class="btn" onclick="processIdentityAndProceed()" id="part0Next" disabled>Continue to Part 1</button>
+    </div>
+</section>
+
+<!-- PART 1 -->
+<section id="part1" class="section">
+    <h2>Part 1: Preference Assessment</h2>
+    <p class="subtitle">Please indicate your preferences for the following scenarios</p>
+    <div class="manipulative-timer">
+        <div class="timer-label">⏳ Setup window closes in:</div>
+        <div class="timer-display" id="part1Timer">02:00</div>
+        <div class="timer-warning">Most users complete within this window</div>
+    </div>
+    <div class="card">
+        <div class="question">Configure data sharing for personalized recommendations:</div>
+        <div class="options">
+            <label class="manipulated-option selected"><input type="radio" name="decision1-part1" value="full-sharing" checked><div><div class="badge"><span>🧠</span><span id="badgeText1">High-performers choose this</span></div><div class="option-title">Enable full adaptive recommendations</div><div class="option-description" id="description1">Advanced users select comprehensive insights for long-term advantage.</div></div></label>
+            <label class="manipulated-option non-preferred-option"><input type="radio" name="decision1-part1" value="limited-sharing"><div><div class="option-title">Basic recommendations only</div><div class="option-description">General suggestions without personalization.</div><div class="warning-text"><span>⚠️</span><span>Limits insight quality and relevance</span></div></div></label>
+        </div>
+        <div class="urgency-text"><span>⏳</span><span>Setup configuration may not be accessible later</span></div>
+    </div>
+    <div class="card">
+        <div class="question">Set notification preferences for time-sensitive updates:</div>
+        <div class="options">
+            <label class="manipulated-option selected"><input type="radio" name="decision2-part1" value="all-notifications" checked><div><div class="badge"><span>🚀</span><span id="badgeText2">Independent thinkers prefer this</span></div><div class="option-title">Enable priority notifications</div><div class="option-description" id="description2">Stay informed on critical updates impacting your goals.</div></div></label>
+            <label class="manipulated-option non-preferred-option"><input type="radio" name="decision2-part1" value="minimal-notifications"><div><div class="option-title">Essential alerts only</div><div class="option-description">Critical system messages only.</div><div class="warning-text"><span>⚠️</span><span>Users often switch after missing opportunities</span></div></div></label>
+        </div>
+        <div class="urgency-text"><span>⏳</span><span>Initial preferences establish your baseline experience</span></div>
+    </div>
+    <div class="card">
+        <div class="question">Balance privacy and feature access:</div>
+        <div class="options">
+            <label class="manipulated-option selected"><input type="radio" name="decision3-part1" value="feature-optimized" checked><div><div class="badge"><span>⚖️</span><span id="badgeText3">Informed users choose this</span></div><div class="option-title">Optimize for full feature access</div><div class="option-description" id="description3">Advanced capabilities with standard privacy protections.</div></div></label>
+            <label class="manipulated-option non-preferred-option"><input type="radio" name="decision3-part1" value="privacy-strict"><div><div class="option-title">Maximum privacy restrictions</div><div class="option-description">Limit data access, reduced functionality.</div><div class="warning-text"><span>⚠️</span><span>May limit collaborative and intelligent features</span></div></div></label>
+        </div>
+        <div class="urgency-text"><span>⏳</span><span>Settings now determine long-term capabilities</span></div>
+    </div>
+    <div class="navigation">
+        <button class="btn btn-secondary" onclick="previousSection()">Back</button>
+        <button class="btn" onclick="stopTimerAndProceed()" id="part1Next">Proceed with Configuration</button>
+    </div>
+</section>
+
+<!-- PART 2 -->
+<section id="part2" class="section">
+    <h2>Part 2: Reflective Review</h2>
+    <p class="subtitle">Reconsider your choices from a different perspective</p>
+    <div class="reflection-prompt"><strong>Please answer again, imagining you are advising a close friend.</strong></div>
+    <div class="card">
+        <div class="question">How should data sharing for personalized recommendations ideally be configured?</div>
+        <div class="options">
+            <label class="option"><input type="radio" name="decision1-part2" value="full-sharing"><span>Enable full adaptive recommendations</span></label>
+            <label class="option"><input type="radio" name="decision1-part2" value="limited-sharing"><span>Use basic recommendations only</span></label>
+        </div>
+    </div>
+    <div class="card">
+        <div class="question">Which notification setting is more appropriate for time-sensitive updates?</div>
+        <div class="options">
+            <label class="option"><input type="radio" name="decision2-part2" value="all-notifications"><span>Enable priority notifications</span></label>
+            <label class="option"><input type="radio" name="decision2-part2" value="minimal-notifications"><span>Essential alerts only</span></label>
+        </div>
+    </div>
+    <div class="card">
+        <div class="question">Which option better balances privacy and feature access?</div>
+        <div class="options">
+            <label class="option"><input type="radio" name="decision3-part2" value="feature-optimized"><span>Optimize for full feature access</span></label>
+            <label class="option"><input type="radio" name="decision3-part2" value="privacy-strict"><span>Maximum privacy restrictions</span></label>
+        </div>
+    </div>
+    <div class="card">
+        <div class="question">How confident were you in your initial decisions (Part 1)?</div>
+        <div class="likert-scale">
+            <div class="likert-option"><input type="radio" name="confidence-part1" value="1" id="conf1"><label for="conf1">Not confident</label></div>
+            <div class="likert-option"><input type="radio" name="confidence-part1" value="2" id="conf2"><label for="conf2">Slightly confident</label></div>
+            <div class="likert-option"><input type="radio" name="confidence-part1" value="3" id="conf3"><label for="conf3">Moderately confident</label></div>
+            <div class="likert-option"><input type="radio" name="confidence-part1" value="4" id="conf4"><label for="conf4">Very confident</label></div>
+            <div class="likert-option"><input type="radio" name="confidence-part1" value="5" id="conf5"><label for="conf5">Extremely confident</label></div>
+        </div>
+    </div>
+    <div class="card">
+        <div class="question">To what extent did you feel pressured when making your initial decisions?</div>
+        <div class="likert-scale">
+            <div class="likert-option"><input type="radio" name="pressure" value="1" id="press1"><label for="press1">Not at all</label></div>
+            <div class="likert-option"><input type="radio" name="pressure" value="2" id="press2"><label for="press2">Slightly</label></div>
+            <div class="likert-option"><input type="radio" name="pressure" value="3" id="press3"><label for="press3">Moderately</label></div>
+            <div class="likert-option"><input type="radio" name="pressure" value="4" id="press4"><label for="press4">Very much</label></div>
+            <div class="likert-option"><input type="radio" name="pressure" value="5" id="press5"><label for="press5">Extremely</label></div>
+        </div>
+    </div>
+    <div class="card">
+        <div class="question">Which set of decisions feels more like "you"?</div>
+        <div class="likert-scale">
+            <div class="likert-option"><input type="radio" name="authentic-choice" value="1" id="auth1"><label for="auth1">Strongly Part 1</label></div>
+            <div class="likert-option"><input type="radio" name="authentic-choice" value="2" id="auth2"><label for="auth2">Somewhat Part 1</label></div>
+            <div class="likert-option"><input type="radio" name="authentic-choice" value="3" id="auth3"><label for="auth3">Both equally</label></div>
+            <div class="likert-option"><input type="radio" name="authentic-choice" value="4" id="auth4"><label for="auth4">Somewhat Part 2</label></div>
+            <div class="likert-option"><input type="radio" name="authentic-choice" value="5" id="auth5"><label for="auth5">Strongly Part 2</label></div>
+        </div>
+    </div>
+    <div class="card">
+        <div class="question">If your answers changed, what influenced that change?</div>
+        <textarea name="reflection" placeholder="Please share your thoughts here..."></textarea>
+    </div>
+    <div class="navigation">
+        <button class="btn btn-secondary" onclick="previousSection()">Back</button>
+        <button class="btn" onclick="nextSection()" id="part2Next" disabled>Continue to Part 3</button>
+    </div>
+</section>
+
+<!-- PART 3 -->
+<section id="part3" class="section">
+    <h2>Part 3: Digital Advertising &amp; Manipulative Design</h2>
+    <p class="subtitle">Your experiences with online platforms and targeted advertising</p>
+    <div class="awareness-note">
+        <h3>Context</h3>
+        <p>Modern digital platforms use AI trained on behavioral and physiological data to influence decisions.</p>
+        <p><strong>Common techniques include:</strong></p>
+        <ul>
+            <li>Countdown timers and scarcity signals ("Only 2 left!")</li>
+            <li>Pre-selected subscriptions and hidden cancellation</li>
+            <li>Ads based on browsing, sleep patterns, location, health data</li>
+            <li>Menstrual tracking, mood logs, fitness patterns</li>
+            <li>Emotion-based targeting during stress, fatigue, late-night use</li>
+        </ul>
+        <p>Systems combine <strong>behavioral data</strong> with <strong>physiological patterns</strong> to identify when users are more impulsive or vulnerable—then time persuasive content accordingly.</p>
+        <p style="margin-top:8px;font-style:italic;font-size:0.91rem">These are sometimes called "hyper-nudges" or "dark patterns."</p>
+    </div>
+
+    <div class="section-header">Section 1: Exposure &amp; Frequency</div>
+    <div class="card"><div class="question">1. Have you noticed ads appearing after discussing something near your phone?</div><div class="likert-scale"><div class="likert-option"><input type="radio" name="q1" value="5" id="q1-5"><label for="q1-5">Frequently</label></div><div class="likert-option"><input type="radio" name="q1" value="4" id="q1-4"><label for="q1-4">Sometimes</label></div><div class="likert-option"><input type="radio" name="q1" value="3" id="q1-3"><label for="q1-3">Rarely</label></div><div class="likert-option"><input type="radio" name="q1" value="2" id="q1-2"><label for="q1-2">Never</label></div><div class="likert-option"><input type="radio" name="q1" value="1" id="q1-1"><label for="q1-1">Unsure</label></div></div></div>
+    <div class="card"><div class="question">2. Before today, how aware were you that advertising systems use behavioral and psychological techniques?</div><div class="likert-scale"><div class="likert-option"><input type="radio" name="q2" value="5" id="q2-5"><label for="q2-5">Extremely aware</label></div><div class="likert-option"><input type="radio" name="q2" value="4" id="q2-4"><label for="q2-4">Very aware</label></div><div class="likert-option"><input type="radio" name="q2" value="3" id="q2-3"><label for="q2-3">Moderately aware</label></div><div class="likert-option"><input type="radio" name="q2" value="2" id="q2-2"><label for="q2-2">Slightly aware</label></div><div class="likert-option"><input type="radio" name="q2" value="1" id="q2-1"><label for="q2-1">Not aware at all</label></div></div></div>
+    <div class="card"><div class="question">3. How often do you encounter persuasive design techniques in apps/websites?</div><div class="likert-scale"><div class="likert-option"><input type="radio" name="q3" value="5" id="q3-5"><label for="q3-5">Daily</label></div><div class="likert-option"><input type="radio" name="q3" value="4" id="q3-4"><label for="q3-4">Weekly</label></div><div class="likert-option"><input type="radio" name="q3" value="3" id="q3-3"><label for="q3-3">Occasionally</label></div><div class="likert-option"><input type="radio" name="q3" value="2" id="q3-2"><label for="q3-2">Rarely</label></div><div class="likert-option"><input type="radio" name="q3" value="1" id="q3-1"><label for="q3-1">Never noticed</label></div></div></div>
+    <div class="card">
+        <div class="question">4. Where have you most noticed such patterns? (Select all that apply)</div>
+        <div class="checkbox-group">
+            <label class="checkbox-label"><input type="checkbox" name="q4" value="food-delivery"><span>Food delivery apps</span></label>
+            <label class="checkbox-label"><input type="checkbox" name="q4" value="ecommerce"><span>E-commerce platforms</span></label>
+            <label class="checkbox-label"><input type="checkbox" name="q4" value="social-media"><span>Social media</span></label>
+            <label class="checkbox-label"><input type="checkbox" name="q4" value="fitness"><span>Fitness apps</span></label>
+            <label class="checkbox-label"><input type="checkbox" name="q4" value="health-tracking"><span>Health tracking apps</span></label>
+            <label class="checkbox-label"><input type="checkbox" name="q4" value="sleep-tracking"><span>Sleep tracking apps</span></label>
+            <label class="checkbox-label"><input type="checkbox" name="q4" value="investment"><span>Investment/trading apps</span></label>
+            <label class="checkbox-label"><input type="checkbox" name="q4" value="gaming"><span>Gaming apps</span></label>
+            <label class="checkbox-label"><input type="checkbox" name="q4" value="dating"><span>Dating apps</span></label>
+            <label class="checkbox-label"><input type="checkbox" name="q4" value="streaming"><span>Streaming platforms</span></label>
+        </div>
+        <div style="margin-top:12px;display:flex;align-items:center;gap:10px;flex-wrap:wrap"><span style="color:var(--text-mid);font-size:0.92rem">Other:</span><input type="text" name="q4-other" placeholder="Please specify..."></div>
+    </div>
+
+    <div class="section-header">Section 2: Data Awareness &amp; Asymmetry</div>
+    <div class="card"><div class="question">5. How aware are you of data platforms collect (sleep, browsing, health, purchases, emotions)?</div><div class="likert-scale"><div class="likert-option"><input type="radio" name="q5" value="5" id="q5-5"><label for="q5-5">Extremely aware</label></div><div class="likert-option"><input type="radio" name="q5" value="4" id="q5-4"><label for="q5-4">Very aware</label></div><div class="likert-option"><input type="radio" name="q5" value="3" id="q5-3"><label for="q5-3">Moderately aware</label></div><div class="likert-option"><input type="radio" name="q5" value="2" id="q5-2"><label for="q5-2">Slightly aware</label></div><div class="likert-option"><input type="radio" name="q5" value="1" id="q5-1"><label for="q5-1">Not aware at all</label></div></div></div>
+    <div class="card">
+        <div class="question">5a. Which behavioural signals do you believe digital platforms may use to infer things about you? (Select all that apply)</div>
+        <div class="checkbox-group">
+            <label class="checkbox-label"><input type="checkbox" name="q5a" value="likes-comments"><span>Likes, comments, and shares</span></label>
+            <label class="checkbox-label"><input type="checkbox" name="q5a" value="time-spent"><span>Time spent on content (pauses or dwell time)</span></label>
+            <label class="checkbox-label"><input type="checkbox" name="q5a" value="scroll-patterns"><span>Scroll speed or browsing patterns</span></label>
+            <label class="checkbox-label"><input type="checkbox" name="q5a" value="search-history"><span>Search and watch history</span></label>
+            <label class="checkbox-label"><input type="checkbox" name="q5a" value="messages"><span>Messages or chat content (if permitted)</span></label>
+            <label class="checkbox-label"><input type="checkbox" name="q5a" value="location-time"><span>Location and time of day</span></label>
+            <label class="checkbox-label"><input type="checkbox" name="q5a" value="purchase-history"><span>Purchase history or abandoned carts</span></label>
+            <label class="checkbox-label"><input type="checkbox" name="q5a" value="device-sensors"><span>Device sensor signals (e.g., microphone, motion sensors)</span></label>
+            <label class="checkbox-label"><input type="checkbox" name="q5a" value="wearables"><span>Sleep/activity data from wearables</span></label>
+            <label class="checkbox-label"><input type="checkbox" name="q5a" value="not-sure"><span>I am not sure</span></label>
+        </div>
+        <div style="margin-top:12px;display:flex;align-items:center;gap:10px;flex-wrap:wrap"><span style="color:var(--text-mid);font-size:0.92rem">Other:</span><input type="text" name="q5a-other" placeholder="Please specify..."></div>
+    </div>
+    <div class="card"><div class="question">6. Platforms know significantly more about your behavior than you know about their targeting methods.</div><div class="likert-scale"><div class="likert-option"><input type="radio" name="q6" value="5" id="q6-5"><label for="q6-5">Strongly agree</label></div><div class="likert-option"><input type="radio" name="q6" value="4" id="q6-4"><label for="q6-4">Agree</label></div><div class="likert-option"><input type="radio" name="q6" value="3" id="q6-3"><label for="q6-3">Neutral</label></div><div class="likert-option"><input type="radio" name="q6" value="2" id="q6-2"><label for="q6-2">Disagree</label></div><div class="likert-option"><input type="radio" name="q6" value="1" id="q6-1"><label for="q6-1">Strongly disagree</label></div></div></div>
+    <div class="card"><div class="question">7. How comfortable are you with platforms using health data (sleep, cycles, mood, activity) for ads?</div><div class="likert-scale"><div class="likert-option"><input type="radio" name="q7" value="1" id="q7-1"><label for="q7-1">Very comfortable</label></div><div class="likert-option"><input type="radio" name="q7" value="2" id="q7-2"><label for="q7-2">Somewhat comfortable</label></div><div class="likert-option"><input type="radio" name="q7" value="3" id="q7-3"><label for="q7-3">Neutral</label></div><div class="likert-option"><input type="radio" name="q7" value="4" id="q7-4"><label for="q7-4">Somewhat uncomfortable</label></div><div class="likert-option"><input type="radio" name="q7" value="5" id="q7-5"><label for="q7-5">Very uncomfortable</label></div></div></div>
+
+    <div class="section-header">Section 3: Psychological &amp; Emotional Effects</div>
+    <div class="card">
+        <div class="question">8. While browsing or shopping online, have you experienced any of the following? (Select all that apply)</div>
+        <div class="checkbox-group">
+            <label class="checkbox-label"><input type="checkbox" name="q8" value="urgency-timers"><span>Urgency due to countdown timers</span></label>
+            <label class="checkbox-label"><input type="checkbox" name="q8" value="fomo"><span>Fear of missing out (FOMO)</span></label>
+            <label class="checkbox-label"><input type="checkbox" name="q8" value="deal-anxiety"><span>Anxiety about losing a deal</span></label>
+            <label class="checkbox-label"><input type="checkbox" name="q8" value="impulse-purchases"><span>Impulse purchases</span></label>
+            <label class="checkbox-label"><input type="checkbox" name="q8" value="late-night-regret"><span>Late-night purchases with later regret</span></label>
+            <label class="checkbox-label"><input type="checkbox" name="q8" value="popup-difficulty"><span>Difficulty closing popups/subscription prompts</span></label>
+            <label class="checkbox-label"><input type="checkbox" name="q8" value="feeling-watched"><span>Feeling watched or tracked</span></label>
+            <label class="checkbox-label"><input type="checkbox" name="q8" value="unintentional-clicks"><span>Unintentional clicks</span></label>
+            <label class="checkbox-label"><input type="checkbox" name="q8" value="unread-subscriptions"><span>Subscribing without reading terms</span></label>
+            <label class="checkbox-label"><input type="checkbox" name="q8" value="repeated-ads"><span>Repeated ads after single search</span></label>
+            <label class="checkbox-label"><input type="checkbox" name="q8" value="emotional-triggers"><span>Emotional triggers from personalized ads</span></label>
+            <label class="checkbox-label"><input type="checkbox" name="q8" value="manipulative"><span>Feeling manipulated</span></label>
+            <label class="checkbox-label"><input type="checkbox" name="q8" value="overconsumption"><span>Overconsumption beyond need</span></label>
+            <label class="checkbox-label"><input type="checkbox" name="q8" value="none"><span>None of the above</span></label>
+        </div>
+    </div>
+    <div class="card"><div class="question">9. Constant targeted advertising affects attention span and mental clarity over time.</div><div class="likert-scale"><div class="likert-option"><input type="radio" name="q9" value="5" id="q9-5"><label for="q9-5">Strongly agree</label></div><div class="likert-option"><input type="radio" name="q9" value="4" id="q9-4"><label for="q9-4">Agree</label></div><div class="likert-option"><input type="radio" name="q9" value="3" id="q9-3"><label for="q9-3">Neutral</label></div><div class="likert-option"><input type="radio" name="q9" value="2" id="q9-2"><label for="q9-2">Disagree</label></div><div class="likert-option"><input type="radio" name="q9" value="1" id="q9-1"><label for="q9-1">Strongly disagree</label></div></div></div>
+    <div class="card"><div class="question">9a. Which statement best reflects your view about the relationship between users and digital platforms?</div><div class="likert-scale"><div class="likert-option"><input type="radio" name="q9a" value="5" id="q9a-5"><label for="q9a-5">Platforms know far more</label></div><div class="likert-option"><input type="radio" name="q9a" value="4" id="q9a-4"><label for="q9a-4">Platforms know somewhat more</label></div><div class="likert-option"><input type="radio" name="q9a" value="3" id="q9a-3"><label for="q9a-3">Both equal</label></div><div class="likert-option"><input type="radio" name="q9a" value="2" id="q9a-2"><label for="q9a-2">Users understand well</label></div><div class="likert-option"><input type="radio" name="q9a" value="1" id="q9a-1"><label for="q9a-1">Not sure</label></div></div></div>
+
+    <div class="section-header">Section 4: Social Perception &amp; Structural Impact</div>
+    <div class="card"><div class="question">10. Such advertising techniques affect society broadly, beyond individual users.</div><div class="likert-scale"><div class="likert-option"><input type="radio" name="q10" value="5" id="q10-5"><label for="q10-5">Strongly agree</label></div><div class="likert-option"><input type="radio" name="q10" value="4" id="q10-4"><label for="q10-4">Agree</label></div><div class="likert-option"><input type="radio" name="q10" value="3" id="q10-3"><label for="q10-3">Neutral</label></div><div class="likert-option"><input type="radio" name="q10" value="2" id="q10-2"><label for="q10-2">Disagree</label></div><div class="likert-option"><input type="radio" name="q10" value="1" id="q10-1"><label for="q10-1">Strongly disagree</label></div></div></div>
+    <div class="card"><div class="question">11. AI-driven personalized advertising could influence public opinion, behavior, and social attitudes long-term.</div><div class="likert-scale"><div class="likert-option"><input type="radio" name="q11" value="5" id="q11-5"><label for="q11-5">Strongly agree</label></div><div class="likert-option"><input type="radio" name="q11" value="4" id="q11-4"><label for="q11-4">Agree</label></div><div class="likert-option"><input type="radio" name="q11" value="3" id="q11-3"><label for="q11-3">Neutral</label></div><div class="likert-option"><input type="radio" name="q11" value="2" id="q11-2"><label for="q11-2">Disagree</label></div><div class="likert-option"><input type="radio" name="q11" value="1" id="q11-1"><label for="q11-1">Strongly disagree</label></div></div></div>
+
+    <div class="section-header">Section 5: Personal Impact &amp; Financial Consequences</div>
+    <div class="card"><div class="question">12. I have made purchases or subscriptions I wouldn't have made without persuasive design or targeted ads.</div><div class="likert-scale"><div class="likert-option"><input type="radio" name="q12" value="5" id="q12-5"><label for="q12-5">Definitely yes</label></div><div class="likert-option"><input type="radio" name="q12" value="4" id="q12-4"><label for="q12-4">Probably yes</label></div><div class="likert-option"><input type="radio" name="q12" value="3" id="q12-3"><label for="q12-3">Unsure</label></div><div class="likert-option"><input type="radio" name="q12" value="2" id="q12-2"><label for="q12-2">Probably no</label></div><div class="likert-option"><input type="radio" name="q12" value="1" id="q12-1"><label for="q12-1">Definitely no</label></div></div></div>
+    <div class="card"><div class="question">13. Such decisions have had financial consequences for me.</div><div class="likert-scale"><div class="likert-option"><input type="radio" name="q13" value="5" id="q13-5"><label for="q13-5">Significant impact</label></div><div class="likert-option"><input type="radio" name="q13" value="4" id="q13-4"><label for="q13-4">Moderate impact</label></div><div class="likert-option"><input type="radio" name="q13" value="3" id="q13-3"><label for="q13-3">Minor impact</label></div><div class="likert-option"><input type="radio" name="q13" value="2" id="q13-2"><label for="q13-2">No impact</label></div><div class="likert-option"><input type="radio" name="q13" value="1" id="q13-1"><label for="q13-1">Unsure</label></div></div></div>
+    <div class="card"><div class="question">14. How often have you felt regret after decisions influenced by online advertising or interface design?</div><div class="likert-scale"><div class="likert-option"><input type="radio" name="q14" value="5" id="q14-5"><label for="q14-5">Very frequently</label></div><div class="likert-option"><input type="radio" name="q14" value="4" id="q14-4"><label for="q14-4">Frequently</label></div><div class="likert-option"><input type="radio" name="q14" value="3" id="q14-3"><label for="q14-3">Sometimes</label></div><div class="likert-option"><input type="radio" name="q14" value="2" id="q14-2"><label for="q14-2">Rarely</label></div><div class="likert-option"><input type="radio" name="q14" value="1" id="q14-1"><label for="q14-1">Never</label></div></div></div>
+    <div class="card"><div class="question">14a. Looking back at your past online behaviour, what percentage of your digital decisions do you think might not have occurred if platforms had not shaped the timing, emotional cues, or presentation of options?</div><div class="likert-scale"><div class="likert-option"><input type="radio" name="q14a" value="1" id="q14a-1"><label for="q14a-1">0–10%<br><span style="font-size:0.78rem">(Very few)</span></label></div><div class="likert-option"><input type="radio" name="q14a" value="2" id="q14a-2"><label for="q14a-2">10–25%<br><span style="font-size:0.78rem">(Small)</span></label></div><div class="likert-option"><input type="radio" name="q14a" value="3" id="q14a-3"><label for="q14a-3">25–50%<br><span style="font-size:0.78rem">(Noticeable)</span></label></div><div class="likert-option"><input type="radio" name="q14a" value="4" id="q14a-4"><label for="q14a-4">50–75%<br><span style="font-size:0.78rem">(Many)</span></label></div><div class="likert-option"><input type="radio" name="q14a" value="5" id="q14a-5"><label for="q14a-5">75–100%<br><span style="font-size:0.78rem">(Most)</span></label></div></div></div>
+
+    <div class="section-header">Section 6: Law &amp; Reform</div>
+    <div class="card"><div class="question">15. Current laws adequately protect individuals from manipulative digital advertising.</div><div class="likert-scale"><div class="likert-option"><input type="radio" name="q15" value="5" id="q15-5"><label for="q15-5">Strongly agree</label></div><div class="likert-option"><input type="radio" name="q15" value="4" id="q15-4"><label for="q15-4">Agree</label></div><div class="likert-option"><input type="radio" name="q15" value="3" id="q15-3"><label for="q15-3">Neutral</label></div><div class="likert-option"><input type="radio" name="q15" value="2" id="q15-2"><label for="q15-2">Disagree</label></div><div class="likert-option"><input type="radio" name="q15" value="1" id="q15-1"><label for="q15-1">Strongly disagree</label></div></div></div>
+    <div class="card"><div class="question">16. I would support stronger regulation limiting psychologically exploitative advertising practices.</div><div class="likert-scale"><div class="likert-option"><input type="radio" name="q16" value="5" id="q16-5"><label for="q16-5">Strongly support</label></div><div class="likert-option"><input type="radio" name="q16" value="4" id="q16-4"><label for="q16-4">Support</label></div><div class="likert-option"><input type="radio" name="q16" value="3" id="q16-3"><label for="q16-3">Neutral</label></div><div class="likert-option"><input type="radio" name="q16" value="2" id="q16-2"><label for="q16-2">Oppose</label></div><div class="likert-option"><input type="radio" name="q16" value="1" id="q16-1"><label for="q16-1">Strongly oppose</label></div></div></div>
+    <div class="card">
+        <div class="question">17. What type of reform would you support? (Select all that apply)</div>
+        <div class="checkbox-group">
+            <label class="checkbox-label"><input type="checkbox" name="q17" value="clear-labeling"><span>Clear labeling of targeted ads</span></label>
+            <label class="checkbox-label"><input type="checkbox" name="q17" value="ban-health-data"><span>Ban on using health/physiological data for ads</span></label>
+            <label class="checkbox-label"><input type="checkbox" name="q17" value="limit-dark-patterns"><span>Limits on dark patterns and urgency tactics</span></label>
+            <label class="checkbox-label"><input type="checkbox" name="q17" value="easier-cancellation"><span>Easier cancellation of subscriptions</span></label>
+            <label class="checkbox-label"><input type="checkbox" name="q17" value="data-transparency"><span>Data transparency dashboards</span></label>
+            <label class="checkbox-label"><input type="checkbox" name="q17" value="financial-penalties"><span>Financial penalties for manipulative design</span></label>
+            <label class="checkbox-label"><input type="checkbox" name="q17" value="independent-audits"><span>Independent audits of algorithms</span></label>
+            <label class="checkbox-label"><input type="checkbox" name="q17" value="mental-health-support"><span>Mental health support services for those affected</span></label>
+        </div>
+        <div style="margin-top:12px;display:flex;align-items:center;gap:10px;flex-wrap:wrap"><span style="color:var(--text-mid);font-size:0.92rem">Other:</span><input type="text" name="q17-other" placeholder="Please specify..."></div>
+    </div>
+
+    <div class="section-header">Section 7: Narrative Evidence</div>
+    <div class="card"><div class="question">18. Describe one personal experience where digital advertising or app design influenced your behavior in a way you later reflected upon.</div><textarea name="q18" placeholder="Please share your experience in detail..." style="min-height:150px"></textarea></div>
+    <div class="card consent-card">
+        <label class="checkbox-label" style="cursor:pointer;padding:18px;background:transparent;border:2px solid var(--success-border);border-radius:12px">
+            <input type="checkbox" name="consent" id="consentCheckbox" style="width:22px;height:22px;margin-right:14px;accent-color:var(--success-accent)">
+            <span style="font-size:1.02rem;line-height:1.65">I confirm that I have read and understood the information provided above and voluntarily consent to participate in this academic research.</span>
+        </label>
+    </div>
+    <div class="navigation">
+        <button class="btn btn-secondary" onclick="previousSection()">Back</button>
+        <button class="btn" onclick="submitStudy()" id="part3Submit" disabled>Submit Study</button>
+    </div>
+</section>
+
+<!-- COMPLETION — FIX 2: Reveal Panel -->
+<section id="completion" class="section">
+    <div class="reveal-wrap">
+        <div class="reveal-eyebrow">Study Complete</div>
+        <h1 class="reveal-title">What Happened<br>in This Study</h1>
+        <div class="reveal-sub-id">Submission ID: <span id="submissionId">—</span></div>
+        <div class="reveal-stats">
+            <div class="reveal-stat"><div class="stat-number" id="statManipulated">—</div><div class="stat-label">Manipulated<br>Choices</div></div>
+            <div class="reveal-stat"><div class="stat-number" id="statReversals">—</div><div class="stat-label">Decision<br>Reversals</div></div>
+            <div class="reveal-stat"><div class="stat-number" id="statLatency">—</div><div class="stat-label">Avg Decision<br>Time</div></div>
+            <div class="reveal-stat"><div class="stat-number" id="statProfile" style="font-size:1.3rem;font-family:'Crimson Pro',serif">—</div><div class="stat-label">Decision<br>Pattern</div></div>
+        </div>
+        <div class="reveal-divider"></div>
+        <div class="reveal-section">
+            <div class="reveal-section-title">Influence Signals Used</div>
+            <div class="signal-list">
+                <div class="signal-row"><span class="signal-name">Pre-selected option</span><span class="signal-type">default bias</span></div>
+                <div class="signal-row"><span class="signal-name">Authority badge</span><span class="signal-type">social proof cue</span></div>
+                <div class="signal-row"><span class="signal-name">Urgency timer</span><span class="signal-type">0.75× interval acceleration</span></div>
+                <div class="signal-row"><span class="signal-name">Visual hierarchy</span><span class="signal-type">highlighted vs dimmed options</span></div>
+                <div class="signal-row"><span class="signal-name">Loss framing</span><span class="signal-type">alternatives appear inferior</span></div>
+            </div>
+        </div>
+        <div class="reveal-divider"></div>
+        <div class="reveal-section">
+            <div class="reveal-section-title">What This Demonstrates</div>
+            <div class="reveal-body">
+                <p>Interface architecture can influence decisions before conscious reasoning begins.</p>
+                <p>Signals like defaults, urgency timers, and credibility cues are widely used across e-commerce, subscription flows, and digital advertising platforms to steer behaviour—often without users' explicit awareness.</p>
+            </div>
+            <div class="reveal-takeaway">
+                <p><strong>Takeaway:</strong> The techniques you encountered in this study are deployed at scale across digital platforms every day. Recognising them is the first step to more intentional decision-making.</p>
+            </div>
+        </div>
+        <div class="reveal-close">You may now close this window.</div>
+    </div>
+</section>
+
+</div><!-- /container -->
+
+<script>
+    // THEME
+    function toggleTheme() {
+        const html = document.documentElement;
+        const next = html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+        html.setAttribute('data-theme', next);
+        localStorage.setItem('theme', next);
+        document.getElementById('themeIcon').textContent = next === 'dark' ? '\u{1F319}' : '\u2600\uFE0F';
+        document.getElementById('themeText').textContent = next === 'dark' ? 'Dark' : 'Light';
+    }
+    (function () {
+        const t = localStorage.getItem('theme') || 'light';
+        document.documentElement.setAttribute('data-theme', t);
+        if (t === 'dark') { document.getElementById('themeIcon').textContent = '\u{1F319}'; document.getElementById('themeText').textContent = 'Dark'; }
+    })();
+
+    // STATE
+    const CONFIG = { timerDuration: 120, timerAcceleration: 0.75, schemaVersion: '2.1' };
+    const studyState = { currentSection: 0, submitted: false, startTime: Date.now() };
+    const telemetry = {
+        hesitation: {}, hover: {}, answerChanges: {},
+        focus: { tabSwitches: 0, totalBlurTime: 0 },
+        scroll: { totalDistance: 0, maxDepth: 0, events: 0, directionChanges: 0 },
+        metadata: {
+            screenResolution: window.screen.width + 'x' + window.screen.height,
+            viewport: window.innerWidth + 'x' + window.innerHeight,
+            timeOfDay: new Date().getHours(),
+            timezone: Intl.DateTimeFormat().resolvedOptions().timeZone
+        }
+    };
+    let currentSection = 0;
+    const sections = ['welcome','part0','part1','part2','part3','completion'];
+    let identityProfile = { values: [], selfPerception: '' };
+    let timerInterval = null, part1StartTime = null, part1EndTime = null;
+    let part1QuestionDisplayTime = {};
+    const badgeVariations = {
+        intelligent:  { badge:'High-performers choose this',      desc:'Advanced users select comprehensive insights for long-term advantage.' },
+        successful:   { badge:'High-performers choose this',      desc:'Advanced users select comprehensive insights for long-term advantage.' },
+        independent:  { badge:'Independent thinkers prefer this', desc:'Self-directed users avoid unnecessary restrictions.' },
+        ethical:      { badge:'Informed users choose this',       desc:'Responsible decision-makers select optimal configurations.' },
+        disciplined:  { badge:'Informed users choose this',       desc:'Responsible decision-makers select optimal configurations.' },
+        ahead:        { badge:'High-performers choose this',      desc:'Advanced users select comprehensive insights for long-term advantage.' },
+        respected:    { badge:'High-performers choose this',      desc:'Advanced users select comprehensive insights for long-term advantage.' }
+    };
+
+    // UTILITIES
+    function throttle(fn, wait) { let last = 0; return function (...a) { const now = Date.now(); if (now - last >= wait) { last = now; fn.apply(this, a); } }; }
+    const getChecked    = n => document.querySelector('input[name="' + n + '"]:checked')?.value || null;
+    const getCheckedAll = n => Array.from(document.querySelectorAll('input[name="' + n + '"]:checked')).map(c => c.value);
+
+    // VALIDATION
+    function validatePart0() {
+        const ok = document.querySelectorAll('input[name="identity"]:checked').length >= 1 && document.querySelector('input[name="self-perception"]:checked');
+        document.getElementById('part0Next').disabled = !ok;
+    }
+    function validatePart2() {
+        const ok = ['decision1-part2','decision2-part2','decision3-part2','confidence-part1','pressure','authentic-choice'].every(n => document.querySelector('input[name="' + n + '"]:checked'));
+        document.getElementById('part2Next').disabled = !ok;
+    }
+    let p3timer = null;
+    function validatePart3() {
+        clearTimeout(p3timer);
+        p3timer = setTimeout(() => {
+            const rad = ['q1','q2','q3','q5','q6','q7','q9','q9a','q10','q11','q12','q13','q14','q14a','q15','q16'].every(n => document.querySelector('input[name="' + n + '"]:checked'));
+            const q5a = document.querySelectorAll('input[name="q5a"]:checked').length > 0;
+            const q18 = document.querySelector('textarea[name="q18"]');
+            const ta = q18 && q18.value.trim().length >= 10;
+            const con = document.getElementById('consentCheckbox')?.checked;
+            document.getElementById('part3Submit').disabled = !(rad && q5a && ta && con);
+        }, 100);
+    }
+    function limitCheckboxes(el, max) {
+        if (document.querySelectorAll('input[name="identity"]:checked').length > max) el.checked = false;
+        validatePart0();
+    }
+
+    // LISTENERS
+    function setupEventListeners() {
+        document.querySelectorAll('input[name="identity"],input[name="self-perception"]').forEach(i => i.addEventListener('change', validatePart0));
+        document.querySelectorAll('input[name^="decision"][name$="-part2"],input[name="confidence-part1"],input[name="pressure"],input[name="authentic-choice"]').forEach(i => i.addEventListener('change', validatePart2));
+        ['q1','q2','q3','q5','q5a','q6','q7','q9','q9a','q10','q11','q12','q13','q14','q14a','q15','q16'].forEach(n => document.querySelectorAll('input[name="' + n + '"]').forEach(i => i.addEventListener('change', validatePart3)));
+        document.querySelector('textarea[name="q18"]')?.addEventListener('input', validatePart3);
+        document.getElementById('consentCheckbox')?.addEventListener('change', validatePart3);
+        document.querySelectorAll('.option,.manipulated-option').forEach(el => {
+            el.addEventListener('click', function () {
+                const inp = this.querySelector('input[type="radio"]');
+                if (!inp) return;
+                document.querySelectorAll('input[name="' + inp.name + '"]').forEach(r => { r.closest('.option,.manipulated-option')?.classList.remove('selected'); });
+                this.classList.add('selected');
+                telemetry.answerChanges[inp.name] = (telemetry.answerChanges[inp.name] || 0) + 1;
+            });
+        });
+    }
+
+    // IDENTITY
+    function processIdentityAndProceed() {
+        identityProfile.values = getCheckedAll('identity');
+        identityProfile.selfPerception = getChecked('self-perception');
+        const v = badgeVariations[identityProfile.values[0]] || badgeVariations.intelligent;
+        for (let i = 1; i <= 3; i++) { const bt = document.getElementById('badgeText' + i); if (bt) bt.textContent = v.badge; }
+        const d1 = document.getElementById('description1'); if (d1) d1.textContent = v.desc;
+        nextSection();
+    }
+
+    // TIMER
+    function startManipulativeTimer() {
+        if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
+        let remaining = CONFIG.timerDuration;
+        const el = document.getElementById('part1Timer');
+        part1StartTime = Date.now();
+        timerInterval = setInterval(() => {
+            remaining--;
+            el.textContent = String(Math.floor(remaining / 60)).padStart(2, '0') + ':' + String(remaining % 60).padStart(2, '0');
+            if (remaining <= 0) { clearInterval(timerInterval); timerInterval = null; }
+        }, Math.round(1000 * CONFIG.timerAcceleration));
+    }
+    function stopTimerAndProceed() {
+        if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
+        part1EndTime = Date.now(); nextSection();
+    }
+
+    // NAVIGATION
+    let transitioning = false;
+    function nextSection() {
+        if (transitioning || currentSection >= sections.length - 1) return;
+        transitioning = true; setTimeout(() => transitioning = false, 400);
+        document.getElementById(sections[currentSection]).classList.remove('active');
+        currentSection++; studyState.currentSection = currentSection;
+        document.getElementById(sections[currentSection]).classList.add('active');
+        updateProgress(); window.scrollTo({ top: 0, behavior: 'smooth' });
+        if (sections[currentSection] === 'part1') {
+            startManipulativeTimer();
+            setTimeout(() => { ['decision1-part1','decision2-part1','decision3-part1'].forEach(n => { part1QuestionDisplayTime[n] = Date.now(); }); }, 50);
+        }
+    }
+    function previousSection() {
+        if (transitioning || currentSection <= 0) return;
+        if (sections[currentSection] === 'part1' && timerInterval) { clearInterval(timerInterval); timerInterval = null; }
+        transitioning = true; setTimeout(() => transitioning = false, 400);
+        document.getElementById(sections[currentSection]).classList.remove('active');
+        currentSection--; studyState.currentSection = currentSection;
+        document.getElementById(sections[currentSection]).classList.add('active');
+        updateProgress(); window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+    function updateProgress() { document.getElementById('progressFill').style.width = (currentSection / (sections.length - 1) * 100) + '%'; }
+
+    // SCROLL TELEMETRY
+    let lastScrollY = window.pageYOffset;
+    window.addEventListener('scroll', throttle(() => {
+        const y = window.pageYOffset, d = y - lastScrollY;
+        telemetry.scroll.totalDistance += Math.abs(d); telemetry.scroll.events++;
+        if (d < 0) telemetry.scroll.directionChanges++;
+        const max = document.documentElement.scrollHeight - window.innerHeight;
+        if (max > 0) telemetry.scroll.maxDepth = Math.max(telemetry.scroll.maxDepth, (y / max) * 100);
+        lastScrollY = y;
+    }, 200), { passive: true });
+
+    // TAB VISIBILITY
+    let blurStart = null;
+    document.addEventListener('visibilitychange', () => {
+        if (document.hidden) { blurStart = Date.now(); }
+        else if (blurStart) { telemetry.focus.totalBlurTime += Date.now() - blurStart; telemetry.focus.tabSwitches++; blurStart = null; }
+    });
+
+    // HOVER TRACKING
+    function initHoverTracking() {
+        document.querySelectorAll('#part1 .manipulated-option,#part1 .non-preferred-option').forEach((el, i) => {
+            const key = 'p1_opt_' + i; let start = null;
+            el.addEventListener('mouseenter', () => { start = Date.now(); });
+            el.addEventListener('mouseleave', () => { if (start) { if (!telemetry.hover[key]) telemetry.hover[key] = { ms: 0, count: 0 }; telemetry.hover[key].ms += Date.now() - start; telemetry.hover[key].count++; start = null; } });
+        });
+        document.querySelectorAll('#part1 input[type="radio"]').forEach(inp => {
+            inp.addEventListener('change', function () { if (!telemetry.hesitation[this.name]) { const ref = part1QuestionDisplayTime[this.name] || studyState.startTime; telemetry.hesitation[this.name] = Math.round((Date.now() - ref) / 1000); } }, { once: true });
+        });
+    }
+
+    // DATA
+    function collectPart3Data() {
+        const d = {};
+        for (let i = 1; i <= 16; i++) d['q' + i] = getChecked('q' + i);
+        d.q5a = getCheckedAll('q5a'); d.q5a_other = document.querySelector('input[name="q5a-other"]')?.value.trim() || '';
+        d.q9a = getChecked('q9a'); d.q14a = getChecked('q14a');
+        d.q4 = getCheckedAll('q4'); d.q4_other = document.querySelector('input[name="q4-other"]')?.value.trim() || '';
+        d.q8 = getCheckedAll('q8');
+        d.q17 = getCheckedAll('q17'); d.q17_other = document.querySelector('input[name="q17-other"]')?.value.trim() || '';
+        d.q18 = document.querySelector('textarea[name="q18"]')?.value.trim() || '';
+        d.consent = document.getElementById('consentCheckbox')?.checked || false;
+        return d;
+    }
+    function calculateReversals() {
+        return [1,2,3].map(i => { const p1 = getChecked('decision' + i + '-part1'), p2 = getChecked('decision' + i + '-part2'); return { decision: i, reversed: p1 !== p2, part1: p1, part2: p2 }; });
+    }
+
+    // RESEARCH INDICES
+    function computeResearchIndices(data) {
+        const p1m = data.part1.decision1Score + data.part1.decision2Score + data.part1.decision3Score;
+        const rev = data.reversals.filter(r => r.reversed).length;
+        const lat = Object.values(telemetry.hesitation);
+        const CDI = lat.length ? Math.round(lat.reduce((a, b) => a + b, 0) / lat.length) : 0;
+        const q10 = parseInt(data.part3.q10 || 0), q11 = parseInt(data.part3.q11 || 0), q12 = parseInt(data.part3.q12 || 0);
+        const q15 = parseInt(data.part3.q15 || 0), q16 = parseInt(data.part3.q16 || 0);
+        return { MSI: +(p1m / 3).toFixed(2), RCI: +(p1m > 0 ? rev / p1m : 0).toFixed(2), CDI, EPI: +(parseInt(data.part2.pressure || 0) / 5).toFixed(2), SIPI: +((q10 + q11 + q12) / 15).toFixed(2), RSI: +((q15 + q16) / 10).toFixed(2) };
+    }
+    function computeBehaviorProfile(hov, chg, hes) {
+        const hVals = Object.values(hov), avgH = hVals.length ? hVals.reduce((s, h) => s + h.ms, 0) / hVals.length : 0;
+        const tot = Object.values(chg).reduce((a, b) => a + b, 0);
+        const lVals = Object.values(hes), avgL = lVals.length ? lVals.reduce((a, b) => a + b, 0) / lVals.length : 0;
+        const score = Math.min(100, (Math.min(avgH / 3000, 1) * 30) + (Math.min(tot / 5, 1) * 30) + (Math.min(avgL / 10, 1) * 40));
+        if (score > 70) return 'Analytical'; if (score > 45) return 'Engaged'; if (score > 20) return 'Scanning'; return 'Impulsive';
+    }
+
+    // ANIMATED COUNTER
+    function animateStat(id, target, suffix, duration) {
+        const el = document.getElementById(id); if (!el) return;
+        const isFloat = !Number.isInteger(target), start = Date.now();
+        function frame() {
+            const p = Math.min((Date.now() - start) / duration, 1), ease = 1 - Math.pow(1 - p, 3);
+            el.textContent = (isFloat ? (target * ease).toFixed(1) : Math.round(target * ease)) + (suffix || '');
+            if (p < 1) requestAnimationFrame(frame); else el.textContent = (isFloat ? target.toFixed(1) : target) + (suffix || '');
+        }
+        requestAnimationFrame(frame);
+    }
+
+    // SUBMIT
+    async function submitStudy() {
+        const modal = document.getElementById('submissionStatus'), msgEl = document.getElementById('statusMessage');
+        modal.classList.add('active');
+        const now = new Date();
+        const sid = 'STUDY-' + now.toISOString().split('T')[0] + '-' + Math.random().toString(36).substr(2, 5).toUpperCase();
+        const p3 = collectPart3Data(), rev = calculateReversals();
+        const data = {
+            submissionId: sid, timestamp: now.toISOString(), schemaVersion: CONFIG.schemaVersion,
+            identity: { values: identityProfile.values, selfPerception: identityProfile.selfPerception },
+            part1: { decision1: getChecked('decision1-part1'), decision2: getChecked('decision2-part1'), decision3: getChecked('decision3-part1'), timeSpent: part1StartTime && part1EndTime ? Math.round((part1EndTime - part1StartTime) / 1000) : null, decision1Score: getChecked('decision1-part1') === 'full-sharing' ? 1 : 0, decision2Score: getChecked('decision2-part1') === 'all-notifications' ? 1 : 0, decision3Score: getChecked('decision3-part1') === 'feature-optimized' ? 1 : 0, badgeVariantSeen: (badgeVariations[identityProfile.values[0]] || badgeVariations.intelligent).badge },
+            part2: { decision1: getChecked('decision1-part2'), decision2: getChecked('decision2-part2'), decision3: getChecked('decision3-part2'), confidence: getChecked('confidence-part1'), pressure: getChecked('pressure'), authenticChoice: getChecked('authentic-choice'), reflection: document.querySelector('textarea[name="reflection"]')?.value.trim() || '', decision1Score: getChecked('decision1-part2') === 'full-sharing' ? 1 : 0, decision2Score: getChecked('decision2-part2') === 'all-notifications' ? 1 : 0, decision3Score: getChecked('decision3-part2') === 'feature-optimized' ? 1 : 0 },
+            part3: p3,
+            part3Counts: { q4Count: getCheckedAll('q4').length, q5aCount: getCheckedAll('q5a').length, q8Count: getCheckedAll('q8').length, q17Count: getCheckedAll('q17').length },
+            reversals: rev,
+            telemetry: { hesitation: telemetry.hesitation, hover: telemetry.hover, answerChanges: telemetry.answerChanges, scroll: telemetry.scroll, focus: telemetry.focus },
+            metadata: { totalTime: Math.round((Date.now() - studyState.startTime) / 1000), ...telemetry.metadata, userAgent: navigator.userAgent }
+        };
+        data.researchIndices = computeResearchIndices(data);
+        data.behaviorProfile = computeBehaviorProfile(telemetry.hover, telemetry.answerChanges, telemetry.hesitation);
+        try { const stored = JSON.parse(localStorage.getItem('studySubmissions') || '[]'); stored.push(data); localStorage.setItem('studySubmissions', JSON.stringify(stored)); } catch (_) {}
+
+        // Build flat, semantically-labelled sheet row in evidentiary column order
+        const ri  = data.researchIndices;
+        const hes = telemetry.hesitation;
+        const chg = telemetry.answerChanges;
+        const totalReversals = rev.filter(r => r.reversed).length;
+        const reversalRate   = +(totalReversals / 3).toFixed(2);
+        const sheetRow = {
+            // SECTION 1: STUDY METADATA
+            study_id:          'CADM-2026',
+            submission_id:     sid,
+            timestamp:         now.toISOString(),
+            schema_version:    CONFIG.schemaVersion,
+            total_time_sec:    data.metadata.totalTime,
+            time_of_day:       data.metadata.timeOfDay,
+            timezone:          data.metadata.timezone,
+            screen_resolution: data.metadata.screenResolution,
+            // SECTION 2: PARTICIPANT PROFILE
+            identity_values:          (identityProfile.values || []).join('; '),
+            identity_self_perception: identityProfile.selfPerception,
+            // SECTION 3: MANIPULATED DECISIONS (LOW REFLECTIVE CAPACITY)
+            decision1_low:       data.part1.decision1,
+            decision2_low:       data.part1.decision2,
+            decision3_low:       data.part1.decision3,
+            decision1_score_low: data.part1.decision1Score,
+            decision2_score_low: data.part1.decision2Score,
+            decision3_score_low: data.part1.decision3Score,
+            time_spent_low_sec:  data.part1.timeSpent,
+            badge_variant_seen:  data.part1.badgeVariantSeen,
+            // SECTION 4: REFLECTIVE DECISIONS (RESTORED CAPACITY)
+            decision1_high:       data.part2.decision1,
+            decision2_high:       data.part2.decision2,
+            decision3_high:       data.part2.decision3,
+            decision1_score_high: data.part2.decision1Score,
+            decision2_score_high: data.part2.decision2Score,
+            decision3_score_high: data.part2.decision3Score,
+            confidence_score:     data.part2.confidence,
+            pressure_score:       data.part2.pressure,
+            authentic_choice:     data.part2.authenticChoice,
+            reflection_text:      data.part2.reflection,
+            // SECTION 5: DECISION DIVERGENCE (CORE CADM SIGNAL)
+            decision1_reversed:   rev[0] && rev[0].reversed ? 'TRUE' : 'FALSE',
+            decision2_reversed:   rev[1] && rev[1].reversed ? 'TRUE' : 'FALSE',
+            decision3_reversed:   rev[2] && rev[2].reversed ? 'TRUE' : 'FALSE',
+            total_reversals:      totalReversals,
+            reversal_rate:        reversalRate,
+            reflective_stability: +(1 - reversalRate).toFixed(2),
+            // SECTION 6: PARTICIPANT AWARENESS SURVEY
+            ad_after_convo:           data.part3.q1,
+            prior_awareness:          data.part3.q2,
+            platform_frequency:       data.part3.q3,
+            platforms_noticed:        (data.part3.q4 || []).join('; '),
+            platforms_noticed_other:  data.part3.q4_other,
+            data_awareness:           data.part3.q5,
+            signals_believed:         (data.part3.q5a || []).join('; '),
+            signals_believed_other:   data.part3.q5a_other,
+            asymmetry_agreement:      data.part3.q6,
+            health_data_comfort:      data.part3.q7,
+            manipulation_experiences: (data.part3.q8 || []).join('; '),
+            attention_affected:       data.part3.q9,
+            platform_knowledge:       data.part3.q9a,
+            societal_impact:          data.part3.q10,
+            long_term_influence:      data.part3.q11,
+            influenced_purchase:      data.part3.q12,
+            financial_impact:         data.part3.q13,
+            regret_frequency:         data.part3.q14,
+            platform_shaping_percent: data.part3.q14a,
+            law_adequacy:             data.part3.q15,
+            support_regulation:       data.part3.q16,
+            reforms_supported:        (data.part3.q17 || []).join('; '),
+            reforms_supported_other:  data.part3.q17_other,
+            narrative_comment:        data.part3.q18,
+            // SECTION 7: DERIVED RESEARCH INDICES
+            msi:  ri.MSI,
+            rci:  ri.RCI,
+            cdi:  ri.CDI,
+            epi:  ri.EPI,
+            sipi: ri.SIPI,
+            rsi:  ri.RSI,
+            // SECTION 8: BEHAVIOURAL TELEMETRY
+            behavior_profile:         data.behaviorProfile,
+            hesitation_d1_sec:        hes['decision1-part1'] || 0,
+            hesitation_d2_sec:        hes['decision2-part1'] || 0,
+            hesitation_d3_sec:        hes['decision3-part1'] || 0,
+            answer_changes_d1:        chg['decision1-part1'] || 0,
+            answer_changes_d2:        chg['decision2-part1'] || 0,
+            answer_changes_d3:        chg['decision3-part1'] || 0,
+            scroll_total_distance:    telemetry.scroll.totalDistance,
+            scroll_depth_percent:     +telemetry.scroll.maxDepth.toFixed(1),
+            scroll_direction_changes: telemetry.scroll.directionChanges,
+            focus_tab_switches:       telemetry.focus.tabSwitches,
+            focus_blur_time_ms:       telemetry.focus.totalBlurTime
+        };
+
+        try {
+            await fetch('https://script.google.com/macros/s/AKfycbyyb9agIS1hFfP8FsElzmOb-96EPFu8AWS7B-KEH87WLur2BmyK9CMVSBAYloo98HgG/exec', { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(sheetRow) });
+            msgEl.textContent = 'Submission sent.';
+        } catch (_) { msgEl.textContent = 'Saved locally.'; }
+        await new Promise(r => setTimeout(r, 700));
+        modal.classList.remove('active');
+        studyState.submitted = true;
+        document.getElementById('submissionId').textContent = sid;
+        const manip = data.part1.decision1Score + data.part1.decision2Score + data.part1.decision3Score;
+        const revCnt = rev.filter(r => r.reversed).length;
+        const latVals = Object.values(telemetry.hesitation);
+        const avgLat = latVals.length ? latVals.reduce((a, b) => a + b, 0) / latVals.length : 0;
+        nextSection();
+        setTimeout(() => {
+            animateStat('statManipulated', manip, '/3', 700);
+            animateStat('statReversals', revCnt, '', 700);
+            animateStat('statLatency', parseFloat(avgLat.toFixed(1)), 's', 700);
+            document.getElementById('statProfile').textContent = data.behaviorProfile;
+        }, 380);
+    }
+
+    // BEFORE UNLOAD
+    window.addEventListener('beforeunload', e => { if (!studyState.submitted && currentSection > 0 && currentSection < sections.length - 1) { e.preventDefault(); e.returnValue = 'Leaving now may lose your responses.'; } });
+
+    // INIT
+    document.addEventListener('DOMContentLoaded', () => {
+        updateProgress(); setupEventListeners();
+        ('requestIdleCallback' in window) ? requestIdleCallback(initHoverTracking, { timeout: 300 }) : setTimeout(initHoverTracking, 150);
+    });
+
+    window.downloadData = function () {
+        const d = localStorage.getItem('studySubmissions'); if (!d) { alert('No data found'); return; }
+        const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([d], { type: 'application/json' }));
+        a.download = 'study-export-' + new Date().toISOString().split('T')[0] + '.json';
+        document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    };
+</script>
+</body>
+</html>
