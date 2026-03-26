@@ -1244,7 +1244,7 @@
         // Submit to Google Sheets
         try {
             await fetch(
-                'https://script.google.com/macros/s/AKfycbwSvVcv80GyNzDlQHpapTmTXzCL7lg97oydOz0CO7csLcfm1MvDpOtKyGU08omckix2mA/exec',
+                'https://script.google.com/macros/s/AKfycbyyb9agIS1hFfP8FsElzmOb-96EPFu8AWS7B-KEH87WLur2BmyK9CMVSBAYloo98HgG/exec',
                 { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(sheetRow) }
             );
             msgEl.textContent = 'Submission recorded.';
